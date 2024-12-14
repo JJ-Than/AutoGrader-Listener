@@ -5,7 +5,8 @@
 Below are some anticipated features. If a feature is not checked off, then it is not completed yet.
 
 ### Configuration of HTTP Server
-- [ ] Key/Value Parsing: File
+- [ ] Port Number
+- [ ] 
 
 ### Configuration of File Grading Procedures
 - [ ] Key/Value Parsing: File content changes (useful for checking if configuration files contain the correct configuration)
