@@ -5,12 +5,30 @@ import pandas as pd
 
 app = Flask(__name__)
 
+# Grading Functions
+def check_key(value):
+    return 'foo'
+
+def check_line(value):
+    return 'foo'
+
+def check_file(value):
+    return 'foo'
+
 # Create hook functions
-@app.route("/", methods=['POST', 'GET'])
+@app.route("/", methods=['POST'])
 def main():
-    if request.method == 'POST':
-        data = request.get_json()
-        return 'WOOHOO!!!'
+    data = request.get_json()
+    if 'ID' not in data or not isinstance(data['ID'], int):
+        return 'ID field not interger or not present. Aborting.'
+    if 'Time' not in data or not isinstance(data['Time'], str):
+        return 'Time field not string or not present. Aborting.'
+    if 'Type' not in data or not isinstance(data['Type'], str):
+        return 'Type field not string or not present. Aborting.'
+    if 'Submission' not in data or not isinstance(data['Submission'], str):
+        return 'Submission field not string or not present. Aborting.'
+    
+    
 
 # Script running options
 
