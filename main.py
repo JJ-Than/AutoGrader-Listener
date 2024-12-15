@@ -10,7 +10,7 @@ app = Flask(__name__)
 def main():
     if request.method == 'POST':
         data = request.get_json()
-        return data
+        return 'WOOHOO!!!'
 
 # Script running options
 
