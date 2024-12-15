@@ -19,14 +19,19 @@ def check_file(value):
 @app.route("/", methods=['POST'])
 def main():
     data = request.get_json()
-    if 'ID' not in data or not isinstance(data['ID'], int):
-        return 'ID field not interger or not present. Aborting.'
-    if 'Time' not in data or not isinstance(data['Time'], str):
-        return 'Time field not string or not present. Aborting.'
-    if 'Type' not in data or not isinstance(data['Type'], str):
-        return 'Type field not string or not present. Aborting.'
-    if 'Submission' not in data or not isinstance(data['Submission'], str):
-        return 'Submission field not string or not present. Aborting.'
+    if request.content_type == 'application/json':
+        if 'ID' not in data or not isinstance(data['ID'], int):
+            return 'ID field not interger or not present. Aborting.'
+        if 'Time' not in data or not isinstance(data['Time'], str):
+            return 'Time field not string or not present. Aborting.'
+        if 'Type' not in data or not isinstance(data['Type'], str):
+            return 'Type field not string or not present. Aborting.'
+        if 'Submission' not in data or not isinstance(data['Submission'], str):
+            return 'Submission field not string or not present. Aborting.'
+        
+        
+    else:
+        return 'content-type must be set to \'application/json\', and be formatted as a json string. Aborting.'
     
     
 
