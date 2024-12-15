@@ -1,6 +1,11 @@
 # AutoGrader-Listener
  HTTP Server which listens for lab submissions, checks validity, then stores submissions in a DB file. This DB file then can be queried for passing or failing grades.
 
+## POST Request JSON Format
+Within the POST request, there will be multiple fields which will be tracked. Please see below for a list of fields which must be present.
+
+ID (int), time (string), type (string: 'key', 'line', or 'file'), submission (string)
+
 ## Project Feature List
 Below are some anticipated features. If a feature is not checked off, then it is not completed yet.
 
