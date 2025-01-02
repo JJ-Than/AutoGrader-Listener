@@ -1,0 +1,67 @@
+{
+    "metadata": {
+        "name": "demo-entries",
+        "description": "Demo entries to provide ",
+        "version": 0.1
+    },
+    "data": [
+        {
+            "table": "LabList",
+            "values": {
+                "LabID": 1,
+                "LabName": "Set IP Address",
+                "VerifyAnswerBool": 1
+            }
+        },
+        {
+            "table": "AnswerKey",
+            "values": {
+                "LabID": 1,
+                "AnswerID": 1,
+                "AnswerName": "Check the current IP Address",
+                "AnswerType": "Key",
+                "AnswerWeight": 4,
+                "Answer": "192.168.1.117"
+            }
+        },
+        {
+            "table": "AnswerKey",
+            "values": {
+                "LabID": 1,
+                "AnswerID": 2,
+                "AnswerName": "Identify the current IP Address",
+                "AnswerType": "Key",
+                "Answer": "192.168.1.117"
+            }
+        },
+        {
+            "table": "LabList",
+            "values": {
+                "LabID": 2,
+                "LabName": "check LDAP membership",
+                "VerifyAnswerBool": 0
+            }
+        },
+        {
+            "table": "AnswerKey",
+            "values": {
+                "LabID": 2,
+                "AnswerID": 1,
+                "AnswerName": "Check the current LDAP membership",
+                "AnswerType": "Key",
+                "AnswerWeight": 4,
+                "Answer": "CN=srv01,OU=computers,DC=example,DC=com"
+            }
+        },
+        {
+            "table": "AnswerKey",
+            "values": {
+                "LabID": 2,
+                "AnswerID": 2,
+                "AnswerName": "Identify the current LDAP membership",
+                "AnswerType": "Key",
+                "Answer": "example.com"
+            }
+        }
+    ]
+}

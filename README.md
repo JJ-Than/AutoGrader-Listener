@@ -19,10 +19,11 @@ Below are some anticipated features. If a feature is not checked off, then it is
 - [ ] Line: Search for custom line attributes within files (useful for checking logfiles to ensure the correct items are being logged)
 - [ ] Hash: Comparison of key file to specified file(s) to validate if an input is correct (useful to check if two files have matching content)
 - [ ] Default Grade: (auto-set to 0.0)
+- [ ] Accept assessed result: Determine whether the grade generated before sending the package is accurate (the status field from above). Ignores status field if false.
 
 ### Grade Reporting Methods
 - [ ] CSV Files
 - [ ] Encrypted CSV Files
-- [ ] Local SQLite Database
+- [X] Local SQLite Database
 - [ ] MySQL Database
 - [ ] AWS RDS MySQL

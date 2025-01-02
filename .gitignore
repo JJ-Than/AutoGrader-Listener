@@ -2,3 +2,4 @@ venv/
 config.ini
 autograder.db
 .vscode/
+.gitattributes

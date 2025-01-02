@@ -2,7 +2,10 @@ import sqlite3
 import os
 from configparser import ConfigParser
 from typing import Optional
+from setup import load_starting_entries
+import re
 
+# Create a default config file
 def default_config(create_db: Optional[bool] = True, demo_mode: Optional[bool] = False):
     config = ConfigParser()
     db_filepath = 'autograder.db'
@@ -14,9 +17,10 @@ def default_config(create_db: Optional[bool] = True, demo_mode: Optional[bool] =
         config.write(file)
 
     if create_db:
-        create_db(path=db_filepath, create_samples=demo_mode)
+        func_create_db(path=db_filepath, create_samples=demo_mode)
 
-def create_db(path: Optional[str] = '', create_samples: Optional[bool] = False, config_filepath: Optional[str] = 'config.ini', default_weight: Optional[int] = -1, default_length: Optional[int] = -1):
+# Create the database tables
+def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = False, config_filepath: Optional[str] = 'config.ini', default_weight: Optional[int] = -1, default_length: Optional[int] = -1):
     if not os.path.isfile(config_filepath): # IF config doesn't exist AND \
         if path == '' or default_weight >= -1 or default_length >= -1: # IF all required parameters are not defined \
             # Error out
@@ -53,6 +57,7 @@ def create_db(path: Optional[str] = '', create_samples: Optional[bool] = False, 
             CREATE TABLE IF NOT EXISTS AnswerKey (
                         LabID INTEGER NOT NULL,
                         AnswerID INTEGER NOT NULL,
+                        AnswerName TEXT NOT NULL,
                         AnswerType TEXT NOT NULL CHECK (AnswerType IN ('Key', 'Line', 'Hash')),
                         AnswerWeight INTEGER NOT NULL DEFAULT {default_weight},
                         Answer TEXT NOT NULL,
@@ -93,10 +98,25 @@ def create_db(path: Optional[str] = '', create_samples: Optional[bool] = False, 
         conn.commit()
 
     if create_samples:
-        create_sample_entries()
+        entries = load_starting_entries('demo-files/demo-entries.json')
+        create_starting_entries(path=path, entries=entries)
 
-def create_sample_entries():
-    print('sample entries') # Placeholder until sample entries can be developed.
+# Takes in list of entries to add to the database
+def create_starting_entries(path: str, entries: dict):
+    with sqlite3.connect(path) as conn:
+        cursor = conn.cursor()
+        re_pattern = re.escape('"')
+        for data in entries["data"]:
+            keys = data["values"].keys().join(', ')
+            keys = re.sub(re_pattern, '', keys)
+            values = data["values"].values().join(', ')
+            values = re.sub(re_pattern, '', values)
+            entry = f'''
+                INSERT INTO {data["table"]} ({keys})
+                VALUES ({values});
+            '''
+            cursor.execute(entry)
+        conn.commit()
 
 if __name__ == '__main__':
     file = './config.ini'
@@ -105,8 +125,8 @@ if __name__ == '__main__':
         config.read(file)
         db_path = config.get('general', 'db_filepath')
         if not os.path.exists(db_path):
-            create_db(path=db_path, create_samples=True)
+            func_create_db(path=db_path, create_samples=True)
         else:
-            print('Database already exists at {db_path}. If you wish to reset it, please delete this file and run the script again.'.format(db_path))
+            print(f'Database already exists at {db_path}. If you wish to reset it, please delete this file and run the script again.')
     else:
         default_config(create_db=True, demo_mode=True)
