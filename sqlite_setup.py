@@ -47,9 +47,9 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
             CREATE TABLE IF NOT EXISTS LabList (
                         LabID INTEGER PRIMARY KEY,
                         LabName TEXT NOT NULL,
-                        CreationTime DATETIME,
                         VerifyAnswerBool INTEGER NOT NULL CHECK (VerifyAnswerBool IN (0, 1)),
                         OriginalLab INTEGER,
+                        CreationTime DATETIME,
                         FOREIGN KEY (OriginalLab) REFERENCES LabList(LabID)
                        ); ''')
                        
@@ -99,24 +99,45 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
 
     if create_samples:
         entries = load_starting_entries('demo-files/demo-entries.json')
-        create_starting_entries(path=path, entries=entries)
+        # print(entries)
+        create_starting_entries(path=path, entries=entries, verbose=2)
 
 # Takes in list of entries to add to the database
-def create_starting_entries(path: str, entries: dict):
+def create_starting_entries(path: str, entries: dict, verbose: Optional[int] = 1):
     with sqlite3.connect(path) as conn:
         cursor = conn.cursor()
-        re_pattern = re.escape('"')
+        re_pattern = re.escape('\'')
+
         for data in entries["data"]:
-            keys = data["values"].keys().join(', ')
+            keys = ', '.join(list(data["values"].keys()))
             keys = re.sub(re_pattern, '', keys)
-            values = data["values"].values().join(', ')
-            values = re.sub(re_pattern, '', values)
-            entry = f'''
-                INSERT INTO {data["table"]} ({keys})
-                VALUES ({values});
-            '''
+
+            values = []
+            for value in data["values"].values():
+                if str(value).isdigit():
+                    values.append(value)
+                else:
+                    values.append(f'"{value}"')
+            values = ', '.join(str(value) for value in values)
+
+            entry = f'INSERT INTO {data["table"]} ({keys}) VALUES ({values});'
             cursor.execute(entry)
+            if verbose:
+                print(f'Entry added to {data["table"]}\n{entry}\n--------------------')
         conn.commit()
+
+        # Show committed entries
+        if verbose >= 2:
+            cursor.execute('SELECT * FROM LabList')
+            print(f'LabList Table:\n{cursor.fetchall()}\n')
+            cursor.execute('SELECT * FROM AnswerKey')
+            print(f'AnswerKey Table:\n{cursor.fetchall()}\n')
+            cursor.execute('SELECT * FROM ActiveLabs')
+            print(f'ActiveLabs Table:\n{cursor.fetchall()}\n')
+            cursor.execute('SELECT * FROM CompleteLabs')
+            print(f'CompletedLabs Table:\n{cursor.fetchall()}\n')
+            cursor.execute('SELECT * FROM SubmittedAnswers')
+            print(f'SubmittedAnswers Table:\n{cursor.fetchall()}\n')
 
 if __name__ == '__main__':
     file = './config.ini'

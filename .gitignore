@@ -3,3 +3,4 @@ config.ini
 autograder.db
 .vscode/
 .gitattributes
+__pycache__/
