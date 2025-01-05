@@ -1,9 +1,32 @@
+# Importing Libraries
 import sqlite3
 import os
+import re
+import argparse
 from configparser import ConfigParser
 from typing import Optional
+
+# Importing Functions from project <scripts>.py
 from setup import load_starting_entries
-import re
+
+
+# Per Google's recommendation, creating the main function for the Argparser
+def main():
+
+    # Ported logic from if __name__ == '__main__'
+    # chooses which function(s) to run
+    file = './config.ini'
+    if os.path.isfile(file):
+        config = ConfigParser()
+        config.read(file)
+        db_path = config.get('general', 'db_filepath')
+        if not os.path.exists(db_path):
+            func_create_db(path=db_path, create_samples=True)
+        else:
+            print(f'Database already exists at {db_path}. If you wish to reset it, please delete this file and run the script again.')
+    else:
+        default_config(create_db=True, demo_mode=True)
+
 
 # Create a default config file
 def default_config(create_db: Optional[bool] = True, demo_mode: Optional[bool] = False):
@@ -18,6 +41,7 @@ def default_config(create_db: Optional[bool] = True, demo_mode: Optional[bool] =
 
     if create_db:
         func_create_db(path=db_filepath, create_samples=demo_mode)
+
 
 # Create the database tables
 def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = False, config_filepath: Optional[str] = 'config.ini', default_weight: Optional[int] = -1, default_length: Optional[int] = -1):
@@ -102,6 +126,7 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
         # print(entries)
         create_starting_entries(path=path, entries=entries, verbose=2)
 
+
 # Takes in list of entries to add to the database
 def create_starting_entries(path: str, entries: dict, verbose: Optional[int] = 1):
     with sqlite3.connect(path) as conn:
@@ -139,15 +164,6 @@ def create_starting_entries(path: str, entries: dict, verbose: Optional[int] = 1
             cursor.execute('SELECT * FROM SubmittedAnswers')
             print(f'SubmittedAnswers Table:\n{cursor.fetchall()}\n')
 
+
 if __name__ == '__main__':
-    file = './config.ini'
-    if os.path.isfile(file):
-        config = ConfigParser()
-        config.read(file)
-        db_path = config.get('general', 'db_filepath')
-        if not os.path.exists(db_path):
-            func_create_db(path=db_path, create_samples=True)
-        else:
-            print(f'Database already exists at {db_path}. If you wish to reset it, please delete this file and run the script again.')
-    else:
-        default_config(create_db=True, demo_mode=True)
+    main()
