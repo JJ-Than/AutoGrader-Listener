@@ -88,25 +88,32 @@ def submit():
     # Check answers
     dividend = 0
     divisor = 0
+    
+    # Verify number of answers submitted is correct
     if len(data['submission']) == len(AnswerKey['Values']) and AnswerKey['VerifyAnswerBool']:
         for iterator, i in enumerate(data['submission']):
+            # Check answer type, then check answer
             if str(i['type']) == 'key' == str(AnswerKey['Values'][iterator]['AnswerType']):
                 correct = check_key(i['answer'], AnswerKey['Values'][iterator]['Answer'])
                 if correct:
                     dividend += int(AnswerKey['Values'][iterator]['AnswerWeight'])
                 divisor += int(AnswerKey['Values'][iterator]['AnswerWeight'])
+
             elif str(i['type']) == 'line' == str(AnswerKey['Values'][iterator]['AnswerType']):
                 correct = check_line(i['answer'], AnswerKey['Values'][iterator]['Answer'])
                 if correct:
                     dividend += int(AnswerKey['Values'][iterator]['AnswerWeight'])
                 divisor += int(AnswerKey['Values'][iterator]['AnswerWeight'])
+
             elif str(i['type']) == 'hash' == str(AnswerKey['Values'][iterator]['AnswerType']):
                 correct = check_hash(i['answer'], AnswerKey['Values'][iterator]['Answer'])
                 if correct:
                     dividend += int(AnswerKey['Values'][iterator]['AnswerWeight'])
                 divisor += int(AnswerKey['Values'][iterator]['AnswerWeight'])
+
             elif str(i['type']) != str(AnswerKey['Values'][iterator]['AnswerType']):
                 return f'Incorrect answer type. Position: {iterator}. Aborting.'
+            
             else:
                 return f'Error checking answer. Position: {iterator}. Aborting.'
     elif len(data['submission']) != len(AnswerKey['Values']):
