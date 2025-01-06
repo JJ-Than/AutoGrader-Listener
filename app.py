@@ -37,7 +37,7 @@ def check_line(answer, key) -> bool:
 def check_hash(answer, key) -> bool:
     return True
 
-# Create hook functions
+# Create submit hook function
 @app.route("/submit", methods=['POST'])
 def submit():
     if request.content_type != 'application/json':
@@ -46,6 +46,7 @@ def submit():
     # Get JSON String
     data = request.get_json()
 
+    # Validate JSON String
     l1_keys = (list(data.keys()))
     if 'id' not in l1_keys or not isinstance(data['ID'], int):
         return 'id field not interger or not present. Aborting.'
@@ -91,12 +92,18 @@ def submit():
             if str(i['type']) == 'key' == str(AnswerKey['Values'][iterator]['AnswerType']):
                 correct = check_key(i['answer'], AnswerKey['Values'][iterator]['Answer'])
                 if correct:
-                    dividend += int(AnswerKey['Values'][iterator]['Points'])
-                divisor += int(AnswerKey['Values'][iterator]['Points'])
+                    dividend += int(AnswerKey['Values'][iterator]['AnswerWeight'])
+                divisor += int(AnswerKey['Values'][iterator]['AnswerWeight'])
             elif str(i['type']) == 'line' == str(AnswerKey['Values'][iterator]['AnswerType']):
-                check_line(i['answer'], AnswerKey['Values'][iterator]['Answer'])
+                correct = check_line(i['answer'], AnswerKey['Values'][iterator]['Answer'])
+                if correct:
+                    dividend += int(AnswerKey['Values'][iterator]['AnswerWeight'])
+                divisor += int(AnswerKey['Values'][iterator]['AnswerWeight'])
             elif str(i['type']) == 'hash' == str(AnswerKey['Values'][iterator]['AnswerType']):
-                check_hash(i['answer'], AnswerKey['Values'][iterator]['Answer'])
+                correct = check_hash(i['answer'], AnswerKey['Values'][iterator]['Answer'])
+                if correct:
+                    dividend += int(AnswerKey['Values'][iterator]['AnswerWeight'])
+                divisor += int(AnswerKey['Values'][iterator]['AnswerWeight'])
             elif str(i['type']) != str(AnswerKey['Values'][iterator]['AnswerType']):
                 return f'Incorrect answer type. Position: {iterator}. Aborting.'
             else:
