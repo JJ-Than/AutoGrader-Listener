@@ -192,22 +192,24 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
         
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS CompleteLabs (
-                        RequestID INTEGER PRIMARY KEY,
-                        LabID INTEGER NOT NULL,
+                        RequestID INTEGER NOT NULL,
                         SubmissionID INTEGER NOT NULL,
+                        LabID INTEGER NOT NULL,
                         DeploymentTime DATETIME NOT NULL,
                         TimeLimit INTEGER NOT NULL,
                         CompletionTime DATETIME NOT NULL,
+                        SubmissionReceivedBool INTEGER NOT NULL DEFAULT 1 CHECK (SubmissionReceivedBool IN (0, 1)),
+                        PRIMARY KEY (RequestID, SubmissionID),
                         FOREIGN KEY (LabID) REFERENCES LabList(LabID)
                        ); ''')
                        
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS SubmittedAnswers (
                         RequestID INTEGER NOT NULL,
-                        SubmittedAnswer INTEGER NOT NULL,
                         SubmissionID INTEGER NOT NULL,
+                        AnswerID INTEGER NOT NULL,
                         Submission TEXT NOT NULL,
-                        PRIMARY KEY (RequestID, SubmittedAnswer),
+                        PRIMARY KEY (RequestID, SubmissionID, AnswerID),
                         FOREIGN KEY (RequestID) REFERENCES CompletedLabs(RequestID)
                        ); ''')
 
