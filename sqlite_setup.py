@@ -181,23 +181,45 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
                         FOREIGN KEY (LabID) REFERENCES LabList(LabID)
                        ); ''')
         
+#        cursor.execute(f'''
+#            CREATE TABLE IF NOT EXISTS ActiveLabs (
+#                        RequestID INTEGER PRIMARY KEY,
+#                        LabID INTEGER NOT NULL,
+#                        DeploymentTime DATETIME NOT NULL,
+#                        TimeLimit INTEGER NOT NULL DEFAULT {default_length},
+#                        FOREIGN KEY (LabID) REFERENCES LabList(LabID)
+#                       ); ''')
+
         cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS ActiveLabs (
                         RequestID INTEGER PRIMARY KEY,
                         LabID INTEGER NOT NULL,
-                        DeploymentTime DATETIME NOT NULL,
+                        DeploymentTime DATETIME,
                         TimeLimit INTEGER NOT NULL DEFAULT {default_length},
                         FOREIGN KEY (LabID) REFERENCES LabList(LabID)
                        ); ''')
+                
+#        cursor.execute('''
+#            CREATE TABLE IF NOT EXISTS CompleteLabs (
+#                        RequestID INTEGER NOT NULL,
+#                        SubmissionID INTEGER NOT NULL AUTOINCREMENT,
+#                        LabID INTEGER NOT NULL,
+#                        DeploymentTime DATETIME NOT NULL,
+#                        TimeLimit INTEGER NOT NULL,
+#                        CompletionTime DATETIME NOT NULL,
+#                        SubmissionReceivedBool INTEGER NOT NULL DEFAULT 1 CHECK (SubmissionReceivedBool IN (0, 1)),
+#                        PRIMARY KEY (RequestID, SubmissionID),
+#                        FOREIGN KEY (LabID) REFERENCES LabList(LabID)
+#                       ); ''')
         
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS CompleteLabs (
                         RequestID INTEGER NOT NULL,
-                        SubmissionID INTEGER NOT NULL,
+                        SubmissionID INTEGER NOT NULL AUTOINCREMENT,
                         LabID INTEGER NOT NULL,
-                        DeploymentTime DATETIME NOT NULL,
-                        TimeLimit INTEGER NOT NULL,
-                        CompletionTime DATETIME NOT NULL,
+                        DeploymentTime DATETIME,
+                        TimeLimit INTEGER,
+                        CompletionTime DATETIME,
                         SubmissionReceivedBool INTEGER NOT NULL DEFAULT 1 CHECK (SubmissionReceivedBool IN (0, 1)),
                         PRIMARY KEY (RequestID, SubmissionID),
                         FOREIGN KEY (LabID) REFERENCES LabList(LabID)

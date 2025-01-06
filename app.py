@@ -2,6 +2,7 @@
 from flask import Flask, request, jsonify
 import sqlite3
 import pandas as pd
+import hashlib
 import argparse
 
 app = Flask(__name__)
@@ -10,33 +11,66 @@ app = Flask(__name__)
 def import_answers(request_ID: int) -> dict:
     with sqlite3.connect('autograder.db') as conn:
         # Check for active lab entry
-        entry = pd.read_sql_query(f'SELECT LabID FROM ActiveLabs WHERE ID = {request_ID}', conn)
+        entry = pd.read_sql_query(f'SELECT LabID FROM ActiveLabs WHERE RequestID = {request_ID} LIMIT 1', conn)
         if entry.empty:
             return {'error': 'record not found'}
         
-        lab = pd.read_sql_query(f'SELECT VerifyAnswerBool FROM LabList WHERE ID = {entry["LabID"].values[0]}', conn)
+        lab = pd.read_sql_query(f'SELECT VerifyAnswerBool FROM LabList WHERE LabID = {entry["LabID"].values[0]} LIMIT 1', conn)
         if lab.empty:
             return {'error': 'no lab found within the database'}
         
         # Check for answer keys
-        answers = pd.read_sql_query(f'SELECT * FROM AnswerKey WHERE ID = {entry["LabID"].values[0]}', conn)
+        answers = pd.read_sql_query(f'SELECT * FROM AnswerKey WHERE LabID = {entry["LabID"].values[0]}', conn)
         if answers.empty:
             return {'error': 'no answer keys within the database for this lab'}
         
         # Convert and combine into dictionary
-        response = {'LabID': int(entry['LabID'].values[0]), 'VerifyAnswerBool': lab['VerifyAnswerBool'].values[0].tobool()}
+        response = {'LabID': int(entry['LabID'].values[0]), 'VerifyAnswerBool': bool(lab['VerifyAnswerBool'].values[0])}
         response['Values'] = answers.to_dict(orient='records')
         return response
+    
+    return {'error': 'unknown error'}
+
+# Store grade in database
+def submit_answer(submission: dict) -> dict:
+    result = {}
+    with sqlite3.connect('autograder.db') as conn:
+        cursor = conn.cursor()
+        # Check for active lab entry
+        cursor.execute(f'SELECT LabID FROM ActiveLabs WHERE RequestID = {submission["ID"]} LIMIT 1')
+        active_lab = cursor.fetchall()
+        if not len(active_lab):
+            return {'error': 'record not found'}
+        
+        # Submit Answers
+        cursor.execute(f'INSERT INTO CompletedLabs (RequestID, LabID, SubmissionReceivedBool) VALUES ({submission["ID"]}, {active_lab[0][1]}, 1)')
+
 
 # Returns True if answer is correct, False if incorrect
-def check_key(answer, key) -> bool: 
-    return True
+def check_key(answer: str, key: str) -> bool: 
+    if answer == key:
+        return True
+    return False
 
-def check_line(answer, key) -> bool:
-    return True
+def check_line(answer: str, key: str) -> bool:
+    if answer == key:
+        return True
+    return False
 
-def check_hash(answer, key) -> bool:
-    return True
+def check_hash(answer: list, key: str, hashed: bool) -> bool:
+    if hashed:
+        if answer[0] == key:
+            return True
+        else:
+            return False
+    
+    # Hash answer
+    hash = hashlib.sha256()
+    for i in answer:
+        hash.update(i.encode())
+    if hash.hexdigest() == key:
+        return True
+    return False
 
 # Create submit hook function
 @app.route("/submit", methods=['POST'])
@@ -73,6 +107,8 @@ def submit():
                 return f'submission/type field not valid. Position: {iterator}. Aborting.'
             if 'answer' not in list(i.keys()):
                 return f'submission/answer field not provided. Position: {iterator}. Aborting.'
+            if 'hashed' not in list(i.keys()) and i['type'] == 'hash':
+                return f'submission/hashed field not provided and required when submission/type equals hash. Position: {iterator}. Aborting.'
             
             # Check for correct variable types
             if i['type'] == 'key' and not isinstance(i['answer'], (int, float, str)):
@@ -88,7 +124,7 @@ def submit():
     # Check answers
     dividend = 0
     divisor = 0
-    
+
     # Verify number of answers submitted is correct
     if len(data['submission']) == len(AnswerKey['Values']) and AnswerKey['VerifyAnswerBool']:
         for iterator, i in enumerate(data['submission']):
@@ -116,15 +152,24 @@ def submit():
             
             else:
                 return f'Error checking answer. Position: {iterator}. Aborting.'
+            
     elif len(data['submission']) != len(AnswerKey['Values']):
         return 'Incorrect number of answers. Aborting.'
+    
+    # Submit answer
+    #submit_answer(submission=data)
+    
+    # Calculate grade
+    grade = dividend / divisor
+
+    return jsonify({'grade': grade})
+
 
 
 # Script running options
 
 
 
-# Run Script if launched directly
-
+# Run Script if launched 
 if __name__ == '__main__':
     app.run(debug=True)
