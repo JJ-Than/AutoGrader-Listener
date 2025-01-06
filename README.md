@@ -18,8 +18,8 @@ Below are some anticipated features. If a feature is not checked off, then it is
 - [ ] Key/Value: File content changes (useful for checking if configuration files contain the correct configuration)
 - [ ] Line: Search for custom line attributes within files (useful for checking logfiles to ensure the correct items are being logged)
 - [ ] Hash: Comparison of key file to specified file(s) to validate if an input is correct (useful to check if two files have matching content)
-- [ ] Default Grade: (auto-set to 0.0)
-- [ ] Accept assessed result: Determine whether the grade generated before sending the package is accurate (the status field from above). Ignores status field if false.
+- [X] Default Weight: (auto-set to 1)
+- [X] Accept assessed result: Determine whether the grade generated before sending the package is accurate (the status field from above). Ignores status field if false.
 
 ### Grade Reporting Methods
 - [ ] CSV Files
