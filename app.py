@@ -26,6 +26,7 @@ def import_answers(request_ID: int) -> dict:
         # Convert and combine into dictionary
         response = {'LabID': int(entry['LabID'].values[0]), 'VerifyAnswerBool': lab['VerifyAnswerBool'].values[0].tobool()}
         response['Values'] = answers.to_dict(orient='records')
+        return response
 
 # Returns True if answer is correct, False if incorrect
 def check_key(answer, key) -> bool: 
