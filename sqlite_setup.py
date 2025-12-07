@@ -5,6 +5,7 @@ import re
 import argparse
 from configparser import ConfigParser
 from typing import Optional
+import pandas as pd
 
 # Importing Functions from project <scripts>.py
 from setup import load_starting_entries
@@ -215,7 +216,7 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS CompleteLabs (
                         RequestID INTEGER NOT NULL,
-                        SubmissionID INTEGER NOT NULL AUTOINCREMENT,
+                        SubmissionID INTEGER NOT NULL,
                         LabID INTEGER NOT NULL,
                         DeploymentTime DATETIME,
                         TimeLimit INTEGER,
@@ -232,7 +233,7 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
                         AnswerID INTEGER NOT NULL,
                         Submission TEXT NOT NULL,
                         PRIMARY KEY (RequestID, SubmissionID, AnswerID),
-                        FOREIGN KEY (RequestID) REFERENCES CompletedLabs(RequestID)
+                        FOREIGN KEY (RequestID) REFERENCES CompleteLabs(RequestID)
                        ); ''')
 
         conn.commit()
@@ -272,16 +273,34 @@ def create_starting_entries(path: str, entries: dict, verbose: Optional[int] = 1
         # Show committed entries
         if verbose >= 2:
             cursor.execute('SELECT * FROM LabList')
-            print(f'LabList Table:\n{cursor.fetchall()}\n')
-            cursor.execute('SELECT * FROM AnswerKey')
-            print(f'AnswerKey Table:\n{cursor.fetchall()}\n')
-            cursor.execute('SELECT * FROM ActiveLabs')
-            print(f'ActiveLabs Table:\n{cursor.fetchall()}\n')
-            cursor.execute('SELECT * FROM CompleteLabs')
-            print(f'CompletedLabs Table:\n{cursor.fetchall()}\n')
-            cursor.execute('SELECT * FROM SubmittedAnswers')
-            print(f'SubmittedAnswers Table:\n{cursor.fetchall()}\n')
+            df_LabList = pd.DataFrame.from_dict(cursor.fetchall())
+            if not df_LabList.empty:
+                df_LabList.columns = ['LabID', 'LabName', 'VerifyAnswerBool', 'OriginalLab', 'CreationTime']
+                print(f'LabList Table:\n{df_LabList.to_string(index=False)}\n')
 
+            cursor.execute('SELECT * FROM AnswerKey')
+            df_AnswerKey = pd.DataFrame.from_dict(cursor.fetchall())
+            if not df_AnswerKey.empty:
+                df_AnswerKey.columns = ['LabID', 'AnswerID', 'AnswerName', 'AnswerType', 'AnswerWeight', 'Answer']
+                print(f'AnswerKey Table:\n{df_AnswerKey.to_string(index=False)}\n')
+
+            cursor.execute('SELECT * FROM ActiveLabs')
+            df_ActiveLabs = pd.DataFrame.from_dict(cursor.fetchall())
+            if not df_ActiveLabs.empty:
+                df_ActiveLabs.columns = ['RequestID', 'SubmissionID', 'LabID', 'DeploymentTime', 'TimeLimit', 'SubmissionReceivedBool']
+                print(f'ActiveLabs Table:\n{df_ActiveLabs.to_string(index=False)}\n')
+
+            cursor.execute('SELECT * FROM CompleteLabs')
+            df_CompletedLabs = pd.DataFrame.from_dict(cursor.fetchall())
+            if not df_CompletedLabs.empty:
+                df_CompletedLabs.columns = ['RequestID', 'SubmissionID', 'LabID', 'DeploymentTime', 'TimeLimit', 'CompletionTime', 'SubmissionReceivedBool']
+                print(f'CompletedLabs Table:\n{df_CompletedLabs.to_string(index=False)}\n')
+
+            cursor.execute('SELECT * FROM SubmittedAnswers')
+            df_SubmittedAnswers = pd.DataFrame.from_dict(cursor.fetchall())
+            if not df_SubmittedAnswers.empty:
+                df_SubmittedAnswers.columns = ['RequestID', 'SubmissionID', 'AnswerID', 'Submission']
+                print(f'SubmittedAnswers Table:\n{df_SubmittedAnswers.to_string(index=False)}\n')
 
 if __name__ == '__main__':
     main()
