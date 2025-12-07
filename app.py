@@ -3,7 +3,6 @@ from flask import Flask, request, jsonify
 import sqlite3
 import pandas as pd
 import hashlib
-import argparse
 
 app = Flask(__name__)
 
