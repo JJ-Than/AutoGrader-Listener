@@ -17,7 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description='Create a SQLite database for the autograder.', add_help=True)
     parser.add_argument('-c', '--config', '--config-filepath', help='Path to the config file.', type=str, default='config.ini')
     parser.add_argument('-d', '--database-filepath', '--db', help='Path to the database file.', type=str, default='autograder.db')
-    parser.add_argument('-D', '--demo-mode', help='Create a demo database (same as -i ./demo-files/demo-entries.json).', action='store_true', default=False)
+    parser.add_argument('-D', '--demo-mode', help='Create a demo database (same as -i ./demo-files/demo-entries.json).\nNo effect if specifying a config file.', action='store_true', default=False)
     parser.add_argument('-f', '--force', help='Attempts to force the command to go through by performing limited error-correction. Does not prevent all errors from occurring.', action='store_true', default=False)
     #parser.add_argument('-i', '--input-file', help='Path to the input file for the demo database.', type=str)
     parser.add_argument('-w', '--default-weight', help='Default weight for each answers. Set to 1 if not specified.', type=int, default=1)
@@ -100,14 +100,18 @@ def main():
         config.read(file)
         db_path = config.get('general', 'db_filepath')
 
+        # Sets Demo Mode based on config file if not specified in arguments
+        if not args.demo_mode:
+            args.demo_mode = config.getboolean('general', 'demo_mode')
+
         if db_path == args.database_filepath == 'autograder.db' and not os.path.isfile(args.database_filepath) or db_path != args.database_filepath and not os.path.isfile(args.database_filepath):
             if verbose >= 2:
-                print(f'Creating database at: {args.database_filepath}')
+                print(f'Creating database at: {args.database_filepath}\nUsing database_filepath from input arguments.')
             func_create_db(path=args.database_filepath, create_samples=args.demo_mode, config_filepath=file, default_weight=args.default_weight, default_length=default_length)
 
         elif db_path == args.database_filepath and not os.path.isfile(db_path):
             if verbose >= 2:
-                print(f'Creating database at: {db_path}')
+                print(f'Creating database at: {db_path}\nUsing database_filepath from config file.')
             func_create_db(path=db_path, create_samples=args.demo_mode, config_filepath=file, default_weight=args.default_weight, default_length=default_length)
             
         elif os.path.isfile(db_path) or os.path.isfile(args.database_filepath):

@@ -5,3 +5,4 @@ autograder.db
 .vscode/
 .gitattributes
 __pycache__/
+cleanup.sh
