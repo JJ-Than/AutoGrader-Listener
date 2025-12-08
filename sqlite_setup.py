@@ -100,19 +100,18 @@ def main():
         config.read(file)
         db_path = config.get('general', 'db_filepath')
 
-        # Sets Demo Mode based on config file if not specified in arguments
-        if not args.demo_mode:
-            args.demo_mode = config.getboolean('general', 'demo_mode')
+        # Sets Demo Mode based on config file
+        demo_mode = bool(config.getboolean('general', 'demo_mode'))
 
         if db_path == args.database_filepath == 'autograder.db' and not os.path.isfile(args.database_filepath) or db_path != args.database_filepath and not os.path.isfile(args.database_filepath):
             if verbose >= 2:
                 print(f'Creating database at: {args.database_filepath}\nUsing database_filepath from input arguments.')
-            func_create_db(path=args.database_filepath, create_samples=args.demo_mode, config_filepath=file, default_weight=args.default_weight, default_length=default_length)
+            func_create_db(path=args.database_filepath, create_samples=demo_mode, config_filepath=file, default_weight=args.default_weight, default_length=default_length, verbose=verbose)
 
         elif db_path == args.database_filepath and not os.path.isfile(db_path):
             if verbose >= 2:
                 print(f'Creating database at: {db_path}\nUsing database_filepath from config file.')
-            func_create_db(path=db_path, create_samples=args.demo_mode, config_filepath=file, default_weight=args.default_weight, default_length=default_length)
+            func_create_db(path=db_path, create_samples=demo_mode, config_filepath=file, default_weight=args.default_weight, default_length=default_length, verbose=verbose)
             
         elif os.path.isfile(db_path) or os.path.isfile(args.database_filepath):
             if verbose and db_path == args.database_filepath:
