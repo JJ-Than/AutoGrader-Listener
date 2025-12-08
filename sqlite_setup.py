@@ -26,9 +26,9 @@ def main():
     parser_length = parser.add_mutually_exclusive_group(required=False)
     parser_length.add_argument('-l', '--default-length', help='Default length for the student to complete the lab after it is triggered. Default is 60 minutes.\nInput number followed by time unit. EX: 30m, 1h, 3d', type=str)
     parser_length.add_argument('--default-length-minutes', help='Default length for the student to complete the lab after it is triggered in minutes', type=int)
-    parser_length.add_argument('-default-length-hours', help='Default length for the student to complete the lab after it is triggered in hours', type=int)
-    parser_length.add_argument('-default-length-days', help='Default length for the student to complete the lab after it is triggered in days', type=int)
-    parser_length.add_argument('-default-length-weeks', help='Default length for the student to complete the lab after it is triggered in weeks', type=int)
+    parser_length.add_argument('--default-length-hours', help='Default length for the student to complete the lab after it is triggered in hours', type=int)
+    parser_length.add_argument('--default-length-days', help='Default length for the student to complete the lab after it is triggered in days', type=int)
+    parser_length.add_argument('--default-length-weeks', help='Default length for the student to complete the lab after it is triggered in weeks', type=int)
 
     # Specify Verbosity (verbose = 1 is default)
     parser_verbosity = parser.add_mutually_exclusive_group(required=False)
@@ -77,7 +77,7 @@ def main():
         if verbose:
             print(e)
         
-        if args.force and verbose >= 2:
+        if args.force and verbose:
             print('Forcing the command to go through. Default length set to 60 minutes.')
             default_length = 60
         elif args.force:
@@ -159,11 +159,9 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
         default_length = config.get('lab', 'default_length')
 
     if verbose >= 2:
-        print(f'Creating database at: {path}')
+        print(f'Creating database at: {path}\n')
     with sqlite3.connect(path) as conn:
-        cursor = conn.cursor()
-
-        cursor.execute('''
+        table_list = ['''
             CREATE TABLE IF NOT EXISTS LabList (
                         LabID INTEGER PRIMARY KEY,
                         LabName TEXT NOT NULL,
@@ -171,9 +169,8 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
                         OriginalLab INTEGER,
                         CreationTime DATETIME,
                         FOREIGN KEY (OriginalLab) REFERENCES LabList(LabID)
-                       ); ''')
-                       
-        cursor.execute(f'''
+                       ); ''', 
+                       f'''
             CREATE TABLE IF NOT EXISTS AnswerKey (
                         LabID INTEGER NOT NULL,
                         AnswerID INTEGER NOT NULL,
@@ -183,40 +180,16 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
                         Answer TEXT NOT NULL,
                         PRIMARY KEY (LabID, AnswerID),
                         FOREIGN KEY (LabID) REFERENCES LabList(LabID)
-                       ); ''')
-        
-#        cursor.execute(f'''
-#            CREATE TABLE IF NOT EXISTS ActiveLabs (
-#                        RequestID INTEGER PRIMARY KEY,
-#                        LabID INTEGER NOT NULL,
-#                        DeploymentTime DATETIME NOT NULL,
-#                        TimeLimit INTEGER NOT NULL DEFAULT {default_length},
-#                        FOREIGN KEY (LabID) REFERENCES LabList(LabID)
-#                       ); ''')
-
-        cursor.execute(f'''
+                       ); ''', 
+                       f'''
             CREATE TABLE IF NOT EXISTS ActiveLabs (
                         RequestID INTEGER PRIMARY KEY,
                         LabID INTEGER NOT NULL,
                         DeploymentTime DATETIME,
                         TimeLimit INTEGER NOT NULL DEFAULT {default_length},
                         FOREIGN KEY (LabID) REFERENCES LabList(LabID)
-                       ); ''')
-                
-#        cursor.execute('''
-#            CREATE TABLE IF NOT EXISTS CompleteLabs (
-#                        RequestID INTEGER NOT NULL,
-#                        SubmissionID INTEGER NOT NULL AUTOINCREMENT,
-#                        LabID INTEGER NOT NULL,
-#                        DeploymentTime DATETIME NOT NULL,
-#                        TimeLimit INTEGER NOT NULL,
-#                        CompletionTime DATETIME NOT NULL,
-#                        SubmissionReceivedBool INTEGER NOT NULL DEFAULT 1 CHECK (SubmissionReceivedBool IN (0, 1)),
-#                        PRIMARY KEY (RequestID, SubmissionID),
-#                        FOREIGN KEY (LabID) REFERENCES LabList(LabID)
-#                       ); ''')
-        
-        cursor.execute('''
+                       ); ''', 
+                       '''
             CREATE TABLE IF NOT EXISTS CompleteLabs (
                         RequestID INTEGER NOT NULL,
                         SubmissionID INTEGER NOT NULL,
@@ -227,9 +200,8 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
                         SubmissionReceivedBool INTEGER NOT NULL DEFAULT 1 CHECK (SubmissionReceivedBool IN (0, 1)),
                         PRIMARY KEY (RequestID, SubmissionID),
                         FOREIGN KEY (LabID) REFERENCES LabList(LabID)
-                       ); ''')
-                       
-        cursor.execute('''
+                       ); ''',
+                       '''
             CREATE TABLE IF NOT EXISTS SubmittedAnswers (
                         RequestID INTEGER NOT NULL,
                         SubmissionID INTEGER NOT NULL,
@@ -237,7 +209,14 @@ def func_create_db(path: Optional[str] = '', create_samples: Optional[bool] = Fa
                         Submission TEXT NOT NULL,
                         PRIMARY KEY (RequestID, SubmissionID, AnswerID),
                         FOREIGN KEY (RequestID) REFERENCES CompleteLabs(RequestID)
-                       ); ''')
+                       ); ''']
+
+        cursor = conn.cursor()
+
+        for table in table_list:
+            if verbose >= 3:
+                print(f'Creating table with command:\n{table}\n')
+            cursor.execute(table)
 
         conn.commit()
 
